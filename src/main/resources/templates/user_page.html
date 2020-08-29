@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <style>
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #570014;
+        }
+
+        li {
+            float: left;
+            background-color: #ad0029;
+        }
+
+
+        li a {
+            display: block;
+            color: #ffe77f;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        li a:hover {
+            background-color: #ff003c;
+        }
+
+
+        *, *:before, *:after {
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            color: #ffe77f;
+            background-color: #2e2934;
+        }
+
+        form {
+            max-width: 300px;
+            margin: 10px auto;
+            padding: 10px 20px;
+            background: #570014;
+            border-radius: 8px;
+        }
+
+        h1 {
+            margin: 0 0 30px 0;
+            text-align: center;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="date"],
+        input[type="datetime"],
+        input[type="email"],
+        input[type="number"],
+        input[type="search"],
+        input[type="tel"],
+        input[type="time"],
+        input[type="url"],
+        textarea,
+        select {
+            background-color: #e8eeef;
+            border: none;
+            font-size: 16px;
+            height: auto;
+            margin: 0;
+            outline: 0;
+            padding: 15px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            margin: 0 4px 8px 0;
+        }
+
+        select {
+            padding: 6px;
+            height: 32px;
+            border-radius: 2px;
+        }
+
+        button {
+            padding: 19px 39px 18px 39px;
+            color: #ffe77f;
+            background-color: #ad0029;
+            font-size: 18px;
+            text-align: center;
+            font-style: normal;
+            border-radius: 5px;
+            width: 100%;
+            border: 1px solid #ad0029;
+            border-width: 1px 1px 3px;
+            margin-bottom: 10px;
+        }
+
+        fieldset {
+            margin-bottom: 30px;
+            border: none;
+        }
+
+        legend {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        label.light {
+            font-weight: 300;
+            display: inline;
+        }
+
+
+        @media screen and (min-width: 480px) {
+
+            form {
+                max-width: 480px;
+            }
+
+        }
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #ad0029;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #ad0029;
+        }
+        .side_menu {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .finances {
+            flex-basis: 100%;
+            min-width: 400px;
+            max-width: 1200px;
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+        }
+        .content {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+<ul>
+    <li><a th:href="@{/user_page(action='account_info')}">Account info</a></li>
+    <li><a th:href="@{/user_page(action='finances')}">My Finances</a></li>
+    <li><a th:href="@{/user_page(action='add_income')}">Add Income</a></li>
+    <li><a th:href="@{/user_page(action='add_expense')}">Add Expense</a></li>
+    <li style="float:right"><a class="active" th:href="@{/user_page(action='logout')}">Logout</a></li>
+</ul>
+
+<div th:if="${action.equals('account_info')}">
+    <p> user info</p>
+</div>
+
+<div th:if="${action.equals('finances')}">
+    <div class="content">
+
+        <div class="side_menu">
+            <form th:action="@{/filter}" th:object="${filters}" method="post">
+
+                <h3>Filter by:</h3>
+
+                <fieldset>
+                    <label for="keyword">Keyword:</label>
+                    <input type="text" id="keyword" th:field="*{keyword}" >
+
+                    <p>Date</p>
+                    <label for="fromDate">From:</label>
+                    <input type="date" th:field="*{fromDate}" id="fromDate">
+                    <label for="toDate">To:</label>
+                    <input type="date" th:field="*{toDate}" id="toDate">
+
+                    <label for="type">Type:</label>
+                    <select id="type" th:field="*{type}"  >
+                        <option value=""><p></p></option>
+                        <option  th:value="'income'"><p>Income</p></option>
+                        <option  th:value="'expense'"><p>Expense</p></option>
+                    </select>
+
+                    <label for="category">Category:</label>
+                    <select id="category" th:field="*{categoryId}"  >
+                        <option value=""><p></p></option>
+                        <option th:each="category: ${allCategories}" th:value="${category.getId()}"><p th:text="${category.getName()}"></p></option>
+                    </select>
+
+
+
+
+                </fieldset>
+                <button type="submit">Filter</button>
+
+            </form>
+        </div>
+
+        <div class="finances">
+
+            <table style="width:100%">
+                <tr>
+                    <th >Name</th>
+                    <th >Amount/Price</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th width="50px">Delete</th>
+                </tr >
+                <tr th:each="finance: ${finances}" style="border-bottom: 2px solid black">
+                    <td th:text="${finance.getName()}" ></td>
+                    <td th:text="${finance.getAmount()}"></td>
+                    <td th:text="${finance.getType()}"></td>
+                    <td th:each="category: ${allCategories}" th:if="${finance.getcategoryId()==category.getId()}" th:text="${category.getName()}"></td>
+                    <th th:text="${finance.getDate()}"></th>
+                    <td ><a th:href="@{/delete_finance(financeId=${finance.getId()})}" ><img style="max-height:  50px"
+                                                                                             src="https://pngimage.net/wp-content/uploads/2018/05/delete-png.png"/></a> </td>
+                </tr>
+
+            </table>
+
+        </div>
+
+    </div>
+</div>
+
+<div th:if="${action.equals('add_income')}">
+    <form th:action="@{/add}" th:object="${finance}" method="post">
+
+        <h1>Add income:</h1>
+
+        <fieldset>
+            <label for="inc_name">Name:</label>
+            <input type="text" id="inc_name" th:field="*{name}" >
+
+            <input type="hidden" name="type"  th:value="'income'">
+
+            <label for="inc_amount">amount:</label>
+            <input type="number" id="inc_amount" th:field="*{amount}" >
+
+            <label for="inc_category">Category:</label>
+            <select id="inc_category" th:field="*{categoryId}"  >
+                <option th:each="category: ${incomeCategories}" th:value="${category.getId()}"><p th:text="${category.getName()}"></p></option>
+            </select>
+
+            <label for="inc_date">Date:</label>
+            <input type="date" th:field="*{date}" id="inc_date">
+
+        </fieldset>
+        <button type="submit">Add</button>
+
+    </form>
+
+</div>
+
+<div th:if="${action.equals('add_expense')}">
+    <form th:action="@{/add}" th:object="${finance}" method="post">
+
+        <h1>Add Expense:</h1>
+
+        <fieldset>
+            <label for="exp_name">Name:</label>
+            <input type="text" id="exp_name" th:field="*{name}" >
+
+            <input type="hidden" name="type"  th:value="'expense'">
+
+            <label for="exp_amount">amount:</label>
+            <input type="number" id="exp_amount" th:field="*{amount}" >
+
+            <label for="exp_category">Category:</label>
+            <select id="exp_category" th:field="*{categoryId}"  >
+                <option th:each="category: ${expenseCategories}" th:value="${category.getId()}"><p th:text="${category.getName()}"></p></option>
+            </select>
+
+            <label for="exp_date">Date:</label>
+            <input type="date" th:field="*{date}" id="exp_date">
+
+        </fieldset>
+        <button type="submit">Add</button>
+
+    </form>
+
+</div>
+
+
+</body>
+</html>
