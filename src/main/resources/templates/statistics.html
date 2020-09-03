@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <style>
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #570014;
+        }
+
+        li {
+            float: left;
+            background-color: #ad0029;
+        }
+
+
+        li a {
+            display: block;
+            color: #ffe77f;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        li a:hover {
+            background-color: #ff003c;
+        }
+
+
+        *, *:before, *:after {
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            color: #ffe77f;
+            background-color: #2e2934;
+        }
+
+        form {
+            max-width: 300px;
+            margin: 10px auto;
+            padding: 10px 20px;
+            background: #570014;
+            border-radius: 8px;
+        }
+
+        h1 {
+            margin: 0 0 30px 0;
+            text-align: center;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="date"],
+        input[type="datetime"],
+        input[type="email"],
+        input[type="number"],
+        input[type="search"],
+        input[type="tel"],
+        input[type="time"],
+        input[type="url"],
+        textarea,
+        select {
+            background-color: #e8eeef;
+            border: none;
+            font-size: 16px;
+            height: auto;
+            margin: 0;
+            outline: 0;
+            padding: 15px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            margin: 0 4px 8px 0;
+        }
+
+        select {
+            padding: 6px;
+            height: 32px;
+            border-radius: 2px;
+        }
+
+        button {
+            padding: 19px 39px 18px 39px;
+            color: #ffe77f;
+            background-color: #ad0029;
+            font-size: 18px;
+            text-align: center;
+            font-style: normal;
+            border-radius: 5px;
+            width: 100%;
+            border: 1px solid #ad0029;
+            border-width: 1px 1px 3px;
+            margin-bottom: 10px;
+        }
+
+        fieldset {
+            margin-bottom: 30px;
+            border: none;
+        }
+
+        legend {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        label.light {
+            font-weight: 300;
+            display: inline;
+        }
+
+
+        @media screen and (min-width: 480px) {
+
+            form {
+                max-width: 480px;
+            }
+
+        }
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #ad0029;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #ad0029;
+        }
+        .side_menu {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .finances {
+            flex-basis: 100%;
+            min-width: 400px;
+            max-width: 1200px;
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+        }
+        .content {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+<ul>
+    <li><a th:href="@{/statistics}">Statistics</a></li>
+    <li><a th:href="@{/user_page(action='finances')}">My Finances</a></li>
+    <li><a th:href="@{/user_page(action='add_income')}">Add Income</a></li>
+    <li><a th:href="@{/user_page(action='add_expense')}">Add Expense</a></li>
+    <li style="float:right"><a class="active" th:href="@{/user_page(action='logout')}">Logout</a></li>
+</ul>
+
+
+<div >
+    <div class="content">
+
+        <div class="side_menu">
+
+        </div>
+
+        <div class="finances">
+            <div id="inc_piechart"></div>
+            <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+            <script th:inline="javascript">
+                // Load google charts
+                google.charts.load('current', {'packages':['corechart']});
+                google.charts.setOnLoadCallback(drawIncChart);
+
+                // Draw the chart and set the chart values
+                function drawIncChart() {
+
+                    var real_data = /*[[${incAmountsPerCategory}]]*/'noValue';
+
+                    var data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Id');
+                    data.addColumn('number', 'amount');
+                    Object.keys(real_data).forEach(function(key) {
+                        data.addRow([ key, real_data[key] ]);
+                    });
+
+                    // Optional; add a title and set the width and height of the chart
+                    var options = {'title':'Income by category', 'width':550, 'height':400};
+
+                    // Display the chart inside the <div> element with id="piechart"
+                    var chart = new google.visualization.PieChart(document.getElementById('inc_piechart'));
+                    chart.draw(data, options);
+                }
+            </script>
+
+            <div id="exp_piechart"></div>
+            <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+            <script th:inline="javascript">
+                // Load google charts
+                google.charts.load('current', {'packages':['corechart']});
+                google.charts.setOnLoadCallback(drawExpChart);
+
+                // Draw the chart and set the chart values
+                function drawExpChart() {
+
+                    var real_data = /*[[${expAmountsPerCategory}]]*/'noValue';
+                    var data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Id');
+                    data.addColumn('number', 'amount');
+                    Object.keys(real_data).forEach(function(key) {
+                        data.addRow([ key, real_data[key] ]);
+                    });
+
+                    // Optional; add a title and set the width and height of the chart
+                    var options = {'title':'Expenses by category', 'width':550, 'height':400};
+
+                    // Display the chart inside the <div> element with id="piechart"
+                    var chart = new google.visualization.PieChart(document.getElementById('exp_piechart'));
+                    chart.draw(data, options);
+                }
+            </script>
+        </div>
+
+    </div>
+</div>
+
+
+</body>
+</html>

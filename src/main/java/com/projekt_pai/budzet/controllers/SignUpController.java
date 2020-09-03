@@ -36,18 +36,16 @@ public class SignUpController {
 
     @PostMapping("/create")
     public String post(@ModelAttribute User user, Model model){
-        if (user.getPassword().length() < 8) { //TODO ustalić dł hasła, podać info w formularzu tworzenia
+        if (user.getPassword().length() < 8) {
             System.out.println("Password too Short");
             return "redirect:/signup";
-            //TODO komunikat na ekranie
         } else if (!EmailValidator.getInstance().isValid(user.getEmail())) {
             System.out.println("Bad Email");
-            //TODO komunikat na ekranie
             return "redirect:/signup";
         } else if (getUser(user.getEmail()) != null) {
             System.out.println(user.getEmail());
             System.out.println("Account with this Email already exists.");
-            //TODO komunikat na ekranie
+
             return "redirect:/signup";
         } else {
             userRepository.save(user);

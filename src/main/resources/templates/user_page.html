@@ -171,7 +171,7 @@
 <body>
 
 <ul>
-    <li><a th:href="@{/user_page(action='account_info')}">Account info</a></li>
+    <li><a th:href="@{/statistics}">Statistics</a></li>
     <li><a th:href="@{/user_page(action='finances')}">My Finances</a></li>
     <li><a th:href="@{/user_page(action='add_income')}">Add Income</a></li>
     <li><a th:href="@{/user_page(action='add_expense')}">Add Expense</a></li>
@@ -192,16 +192,16 @@
 
                 <fieldset>
                     <label for="keyword">Keyword:</label>
-                    <input type="text" id="keyword" th:field="*{keyword}" >
+                    <input type="text" th:value="${filters.keyword}" id="keyword" th:field="*{keyword}" >
 
                     <p>Date</p>
                     <label for="fromDate">From:</label>
-                    <input type="date" th:field="*{fromDate}" id="fromDate">
+                    <input type="date" th:value="${filters.fromDate}"  th:field="*{fromDate}" id="fromDate">
                     <label for="toDate">To:</label>
-                    <input type="date" th:field="*{toDate}" id="toDate">
+                    <input type="date" th:value="${filters.toDate}" th:field="*{toDate}" id="toDate">
 
                     <label for="type">Type:</label>
-                    <select id="type" th:field="*{type}"  >
+                    <select id="type" th:value="${filters.type}" th:field="*{type}"  >
                         <option value=""><p></p></option>
                         <option  th:value="'income'"><p>Income</p></option>
                         <option  th:value="'expense'"><p>Expense</p></option>
@@ -210,14 +210,23 @@
                     <label for="category">Category:</label>
                     <select id="category" th:field="*{categoryId}"  >
                         <option value=""><p></p></option>
-                        <option th:each="category: ${allCategories}" th:value="${category.getId()}"><p th:text="${category.getName()}"></p></option>
+                        <option th:each="category: ${allCategories}" th:value="${category.getId()}"><p th:text="${category.getName()}"> </p> <p th:if="${category.name=='Other'}" th:text="${category.getType()}"></p></option>
                     </select>
-
-
-
 
                 </fieldset>
                 <button type="submit">Filter</button>
+                <button onclick="customReset()">Clear</button>
+
+                <script>
+                    function customReset()
+                    {
+                        document.getElementById("keyword").value = "";
+                        document.getElementById("fromDate").value = "";
+                        document.getElementById("toDate").value = "";
+                        document.getElementById("type").value = "";
+                        document.getElementById("category").value = "";
+                    }
+                </script>
 
             </form>
         </div>

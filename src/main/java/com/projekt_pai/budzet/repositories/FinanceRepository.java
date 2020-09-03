@@ -1,5 +1,6 @@
 package com.projekt_pai.budzet.repositories;
 
+import com.projekt_pai.budzet.Additional.Temp;
 import com.projekt_pai.budzet.entities.Finance;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -19,13 +20,14 @@ public interface FinanceRepository extends CrudRepository<Finance,Integer> {
 
     List<Finance> findAllByNameContains(@Param("keyword") String keyword);
 
-    List<Finance> findAllByUserIdAndTypeContains(@Param("user_id") Integer user_id,
+    List<Finance> findAllByUserIdAndType(@Param("user_id") Integer user_id,
                                                  @Param("type") String type);
     List<Finance> findAllByDateAfter(@Param("date") String date);
 
     List<Finance> findAllByDateBefore(@Param("date") String date);
 
     List<Finance> findAllByCategoryId(@Param("categoryId") Integer categoryId);
+
 
 
 

@@ -7,6 +7,7 @@ import com.projekt_pai.budzet.entities.User;
 import com.projekt_pai.budzet.repositories.CategoryRepository;
 import com.projekt_pai.budzet.repositories.FinanceRepository;
 import com.projekt_pai.budzet.repositories.UserRepository;
+import io.reactivex.Observable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,7 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.management.Query;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -36,15 +37,16 @@ public class UserPageController {
     @GetMapping("/user_page")
     public String get(@CookieValue(value = "username", required = false)String username,
                       @RequestParam(value = "action", defaultValue = "finances") String action,
-                      @RequestParam(value = "keyword", required = false) String keyword,
-                      @RequestParam(value = "dateFrom", required = false) String dateFrom,
-                      @RequestParam(value = "dateTo", required = false) String dateTo,
-                      @RequestParam(value = "categoryId", required = false) Integer categoryId,
-                      @RequestParam(value = "type",required = false) String type,
+                      @ModelAttribute("filters") Filters filters,
                       Model model,
                       HttpServletResponse response){
 
-
+/*
+        @RequestParam(value = "keyword", required = false) String keyword,
+        @RequestParam(value = "dateFrom", required = false) String dateFrom,
+        @RequestParam(value = "dateTo", required = false) String dateTo,
+        @RequestParam(value = "categoryId", required = false) Integer categoryId,
+        @RequestParam(value = "type",required = false) String type,*/
 
         User user = userRepository.findByEmail(username);
         if(username==null || username.isEmpty()||user==null||action==null){
@@ -60,44 +62,15 @@ public class UserPageController {
                 List<Finance> finances = financeRepository.findAllByUserId(user.getId());
                 List<Category> allCategories = (List<Category>) categoryRepository.findAll();
 
-
-                //day 5 of working on this shit - idk how to filter dates with stream api so I used jpa query + stream api(send help)
-                if(!(keyword==null)){
-                    System.out.println("keyword: "+keyword);
-                    List<Finance> filter = financeRepository.findAllByNameContains(keyword);
-                    finances=finances.stream()
-                            .filter(filter::contains)
-                            .collect(Collectors.toList());
+                if(filters.getKeyword()!=null) {
+                    finances = filterFinances(finances, filters);
                 }
-                if(!(dateFrom==null)){
-                    List<Finance> filter = financeRepository.findAllByDateAfter(dateFrom);
-                    finances=finances.stream()
-                            .filter(filter::contains)
-                            .collect(Collectors.toList());
+                if(filters==null) {
+                    filters = new Filters();
                 }
-                if(!(dateTo==null)){
-                    List<Finance> filter = financeRepository.findAllByDateBefore(dateTo);
-                    finances=finances.stream()
-                            .filter(filter::contains)
-                            .collect(Collectors.toList());
-                }
-                if(!(categoryId==null)){
-                    List<Finance> filter = financeRepository.findAllByCategoryId(categoryId);
-                    finances=finances.stream()
-                            .filter(filter::contains)
-                            .collect(Collectors.toList());
-                }
-                if(!(type==null)){
-                    List<Finance> filter = financeRepository.findAllByType(type);
-                    finances=finances.stream()
-                            .filter(filter::contains)
-                            .collect(Collectors.toList());
-                }
-
-
                 model.addAttribute("finances", finances);
                 model.addAttribute("allCategories", allCategories);
-                model.addAttribute("filters",new Filters());
+                model.addAttribute("filters",filters);
 
                 break;
             case "add_income": {
@@ -123,6 +96,55 @@ public class UserPageController {
 
         model.addAttribute("action", action);
         return "user_page";
+    }
+
+    public List<Finance> filterFinances(List<Finance> finances, Filters filters){
+        List<Finance> result = new ArrayList<>();
+
+        Observable.fromIterable(finances)
+                .flatMap(finance -> {
+                    if(!(filters.getKeyword().isEmpty()) && filters.getKeyword()!=null)
+                        return Observable.just(finance)
+                                .filter((financeRepository.findAllByNameContains(filters.getKeyword()))::contains);
+                    else
+                        return Observable.just(finance);
+                })
+                .flatMap(finance -> {
+                    if(!(filters.getType().isEmpty()))
+                        return Observable.just(finance)
+                                .filter((financeRepository.findAllByType(filters.getType()))::contains);
+                    else
+                        return Observable.just(finance);
+                })
+                .flatMap(finance -> {
+                    if(!(filters.getFromDate().isEmpty()))
+                        return Observable.just(finance)
+                                .filter((financeRepository.findAllByDateAfter(filters.getFromDate()))::contains);
+                    else
+                        return Observable.just(finance);
+
+                })
+                .flatMap(finance -> {
+                    if(!(filters.getToDate().isEmpty()))
+                        return Observable.just(finance)
+                                .filter((financeRepository.findAllByDateBefore(filters.getToDate()))::contains);
+                    else
+                        return Observable.just(finance);
+
+                })
+                .flatMap(finance -> {
+                    if(!(filters.getCategoryId()==null))
+                        return Observable.just(finance)
+                                .filter((financeRepository.findAllByCategoryId(filters.getCategoryId()))::contains);
+                    else
+                        return Observable.just(finance);
+
+                })
+                .doOnError(error -> System.err.println("The error message is: " + error.getMessage()))
+                .subscribe(result::add,
+                        Throwable::printStackTrace);
+
+        return result;
     }
 
 
@@ -170,12 +192,8 @@ public class UserPageController {
             System.out.println("finance added");
         }
 
-
-
-
         redirectAttributes.addAttribute("action","finances");
         return "redirect:/user_page";
-
 
     }
 
@@ -183,36 +201,8 @@ public class UserPageController {
     public String filterFinances(@ModelAttribute Filters filters,
                                  RedirectAttributes redirectAttributes){
 
-        if(filters!=null){
-            System.out.println(filters.getType());
-
-            System.out.println(filters.getToDate());
-
-            System.out.println(filters.getFromDate());
-
-            System.out.println(filters.getCategoryId());
-
-            System.out.println(filters.getKeyword());
-        }
-
-
         redirectAttributes.addAttribute("action","finances");
-
-        if(!(filters.getKeyword().isEmpty()))
-            redirectAttributes.addAttribute("keyword",filters.getKeyword());
-
-        if(!(filters.getFromDate().isEmpty()))
-            redirectAttributes.addAttribute("dateFrom",filters.getFromDate());
-
-        if(!(filters.getToDate().isEmpty()))
-            redirectAttributes.addAttribute("dateTo",filters.getToDate());
-
-        if(!(filters.getCategoryId()==null))
-            redirectAttributes.addAttribute("categoryId",filters.getCategoryId());
-
-        if(!(filters.getType().isEmpty()))
-            redirectAttributes.addAttribute("type", filters.getType());
-
+        redirectAttributes.addFlashAttribute("filters",filters);
 
         return "redirect:/user_page";
     }

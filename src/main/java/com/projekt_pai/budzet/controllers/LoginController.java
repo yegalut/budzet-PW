@@ -14,6 +14,7 @@ import org.thymeleaf.model.IModel;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Optional;
 
 
 @Controller
@@ -27,10 +28,11 @@ public class LoginController {
     }
 
     public User getUser(String email) {
-        //System.out.println(email);
         User user = userRepository.findByEmail(email);
-        System.out.println("GET USER: " + user);
-        return user;
+        if(user!=null)
+            return user;
+        else
+            return new User();
     }
 
     @GetMapping("/login")
@@ -46,7 +48,7 @@ public class LoginController {
                               RedirectAttributes re,
                               HttpServletResponse response) {
 
-        if ((user.getLogin() != null) && (!user.getLogin().isEmpty()) && (user.getPassword() != null) && (!user.getPassword().isEmpty())) {
+        if((user.getLogin() !=null)&&(!user.getLogin().isEmpty()) && (user.getPassword() !=null) && (!user.getPassword().isEmpty()) ) {
             User validateAgainst = getUser(user.getLogin());
 
             if (user.getLogin().equals(validateAgainst.getEmail())) {
@@ -56,7 +58,7 @@ public class LoginController {
                     Cookie cookie = new Cookie("username", user.getLogin());
                     cookie.setPath("/");//global
                     response.addCookie(cookie);
-                    re.addAttribute("action", "account_info");
+                    re.addAttribute("action","finances");
                     return "redirect:/user_page";
                 }
 
